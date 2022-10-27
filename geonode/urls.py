@@ -181,6 +181,9 @@ if 'tinymce' in settings.INSTALLED_APPS:
 if 'django_select2' in settings.INSTALLED_APPS:
     urlpatterns += [path("select2/", include("django_select2.urls")), ]
 
+if 'externalapplications' in settings.INSTALLED_APPS:
+    urlpatterns += [url(r'^external-applications/', include('externalapplications.urls'))]
+
 urlpatterns += i18n_patterns(
     url(r'^grappelli/', include('grappelli.urls')),
     url(r'^admin/', admin.site.urls, name="admin"),

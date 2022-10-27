@@ -522,6 +522,9 @@ INSTALLED_APPS = (
 
     # GeoNode
     'geonode',
+
+
+    'externalapplications',
 )
 
 markdown_white_listed_tags = [
