@@ -455,8 +455,6 @@ GEONODE_APPS = GEONODE_CORE_APPS + GEONODE_INTERNAL_APPS + GEONODE_CONTRIB_APPS
 
 INSTALLED_APPS = (
 
-    'externalapplications',
-
     # Boostrap admin theme
     # 'django_admin_bootstrapped.bootstrap3',
     # 'django_admin_bootstrapped',
@@ -2220,3 +2218,6 @@ SUPPORTED_DATASET_FILE_TYPES = [
         "needsFiles": ["shp", "prj", "dbf", "shx", "csv", "tiff", "zip", "xml"]
     }
 ]
+
+
+INSTALLED_APPS += ( 'externalapplications', )
