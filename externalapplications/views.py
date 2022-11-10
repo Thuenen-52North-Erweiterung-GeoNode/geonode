@@ -62,7 +62,8 @@ def create_external_application(request):
         if form.is_valid():
             data = form.cleaned_data
             obj = ExternalApplication.objects.create(owner=request.user,
-                url=data.get("url"), title=data.get("title"), abstract=data.get("abstract"))
+                url=data.get("url"), title=data.get("title"), abstract=data.get("abstract"),
+                resource_type = 'externalapplication')
         return HttpResponseRedirect(reverse('external_application_metadata_detail', args=(obj.pk,)))
     else:
         form = ExternalApplicationCreateForm()
