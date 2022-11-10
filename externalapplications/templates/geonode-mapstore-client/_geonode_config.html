@@ -3,11 +3,9 @@
 <script>
     window.__GEONODE_CONFIG__.overrideLocalConfig = function(localConfig, _) {
         // Here the localConfig can be overridden and/or extended
-        console.log("Hello World")
-        
         filtersForm = localConfig.geoNodeConfiguration.filtersForm
         filtersForm.items[0].items.push({
-            id: "externalapplications",
+            id: "externalapplication",
             labelId: "externalapplications.filter",
             type: "filter",
             query: {
