@@ -2,7 +2,8 @@
     "locale": "de-DE",
     "messages": {
         "externalapplications": {
-            "filter": "External Applications"
+            "filter": "External Applications",
+            "register": "External Applications"
         }
     }
 }
