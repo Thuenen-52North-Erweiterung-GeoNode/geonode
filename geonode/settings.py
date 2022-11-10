@@ -455,6 +455,8 @@ GEONODE_APPS = GEONODE_CORE_APPS + GEONODE_INTERNAL_APPS + GEONODE_CONTRIB_APPS
 
 INSTALLED_APPS = (
 
+    'externalapplications',
+
     # Boostrap admin theme
     # 'django_admin_bootstrapped.bootstrap3',
     # 'django_admin_bootstrapped',
@@ -523,8 +525,6 @@ INSTALLED_APPS = (
     # GeoNode
     'geonode',
 
-
-    'externalapplications',
 )
 
 markdown_white_listed_tags = [
