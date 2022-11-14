@@ -140,10 +140,15 @@ def insert_data_rows(target_table, column_defs, data_rows):
         preprocessed_vals = []
         i = 0
         for v in r:
-            if (column_defs[i]["type"] in ["integer", "numeric"]):
-                preprocessed_vals.append(str(v))
-            else:
-                preprocessed_vals.append(f"'{v}'")
+            print("DEBUG %s" % [i, column_defs, len(column_defs), r])
+            try:
+                if (column_defs[i]["type"] in ["integer", "number"]):
+                    preprocessed_vals.append(str(v))
+                else:
+                    preprocessed_vals.append(f"'{v}'")
+            except Exception as e:
+                print(e)
+                print(column_defs[i])
             i += 1
         
         stmt = f"INSERT INTO {target_table} VALUES ({', '.join(preprocessed_vals)});"
