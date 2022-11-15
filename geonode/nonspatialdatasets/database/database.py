@@ -22,8 +22,9 @@ def execute_statement(stmt, result_count=0):
     try:
         conn = psycopg2.connect(dbname=DATABASE_NAME, user=POSTGRES_USER, host=DATABASE_HOST, port=DATABASE_PORT, password=POSTGRES_PASSWORD)
         cur = conn.cursor()
-        cur.execute(stmt)
         
+        logger.error("[NON SPATIAL] SQL Query: %s", stmt)
+        cur.execute(stmt)
         
         if (result_count > 1):
             result = cur.fetchall()
@@ -54,7 +55,7 @@ def table_exists(table_name):
         table_name = '{table_name}'
         );"""
     result = execute_statement(stmt, 1)
-    print(result)
+    
     if (result[0]):
         return True
     else:
@@ -72,7 +73,7 @@ def create_catalog_table():
 def insert_catalog_entry(target_table, column_defs):
     column_defs_json = json.dumps(column_defs)
     stmt = f"INSERT INTO {CATALOG_DB_NAME}(table_name, column_definitions) VALUES ('{target_table}', '{column_defs_json}');"
-    print(stmt)
+    
     execute_statement(stmt)
     result = execute_statement(f"SELECT dataset_id FROM {CATALOG_DB_NAME} WHERE table_name = '{target_table}'", 1)
     return result[0]
@@ -129,7 +130,6 @@ def create_dataset_table(dataset_title, column_defs):
     target_table = resolve_unique_table_name(dataset_title)
     
     column_defs_sql = create_column_defs_sql(column_defs)
-    print(column_defs_sql)
     
     stmt = f"CREATE TABLE IF NOT EXISTS {target_table} ({column_defs_sql});"
     table = execute_statement(stmt)
@@ -140,41 +140,77 @@ def insert_data_rows(target_table, column_defs, data_rows):
         preprocessed_vals = []
         i = 0
         for v in r:
-            print("DEBUG %s" % [i, column_defs, len(column_defs), r])
             try:
                 if (column_defs[i]["type"] in ["integer", "number"]):
                     preprocessed_vals.append(str(v))
                 else:
                     preprocessed_vals.append(f"'{v}'")
             except Exception as e:
-                print(e)
-                print(column_defs[i])
+                logger.exception(e)
             i += 1
         
         stmt = f"INSERT INTO {target_table} VALUES ({', '.join(preprocessed_vals)});"
-        print(stmt)
         execute_statement(stmt)
-    
-def query_dataset(dataset_id, start=0, size=50):
-    # load column defs
-    stmt = f"""SELECT column_definitions from {CATALOG_DB_NAME}
-        WHERE dataset_id = {dataset_id}
-        """
+
+def get_column_definitions(dataset_id):
+    stmt = f"SELECT column_definitions from {CATALOG_DB_NAME} WHERE dataset_id = {dataset_id}"
+        
     data = execute_statement(stmt, 1)
     column_defs = json.loads(data[0])
+    return column_defs
+
+def find_column_definition(column_defs, key):
+    el = [x for x in column_defs if x["name"] == key]
+    if el:
+        return el[0]
     
-    # load the data
+    return None
+
+def construct_sql_filter(filter_def, column_defs):
+    defs = []
+    for key, value in filter_def.items():
+        key_def = find_column_definition(column_defs, key)
+        if (key_def):
+            sanitized_key = sanitize(key)
+            if (key_def["type"] in ["integer", "number"]):
+                defs.append(f"{sanitized_key} = {value}")
+            else:
+                defs.append(f"{sanitized_key} = '{value}'")
+    
+    if (len(defs) > 0):
+        return " AND ".join(defs)
+    
+    return None
+    
+def query_dataset(dataset_id, start=0, size=50, filters=None, sort=None):
+    # load column defs
+    column_defs = get_column_definitions(dataset_id)
+    
+    # order by
+    order = ""
+    if (sort):
+        asc_desc = "ASC"
+        if (not sort["ascending"]):
+            asc_desc = "DESC"
+        order = f'ORDER BY {sort["sort"]} {asc_desc}'
+        
+        
+    # where clause
+    where = ""
+    if (filters):
+        sql_defs = construct_sql_filter(filters, column_defs)
+        if (sql_defs):
+            where = f" WHERE {sql_defs} "
+    
+    # contruct the query
     target_table = resolve_dataset_table(dataset_id)
-    stmt = f"""SELECT * from {target_table}
-        LIMIT {size} OFFSET {start};
-        """
+    stmt = f"SELECT * from {target_table} {where} {order} LIMIT {size} OFFSET {start};"
     
     # construct a nice array of dicts
     result = []
     data = execute_statement(stmt, size)
     
     for d in data:
-        print(d)
         i = 0
         entry = {}
         for v in d:

@@ -258,6 +258,5 @@ urlpatterns += [
 
 
 urlpatterns += [
-    # path('nonspatial/', include('geonode.nonspatialdatasets.urls')),
     url(r'^nonspatial/', include('geonode.nonspatialdatasets.urls')),
 ]

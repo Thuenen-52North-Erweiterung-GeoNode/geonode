@@ -7,9 +7,6 @@ from ..database.database import create_catalog_table, create_dataset_table, inse
 
 logger = logging.getLogger(__name__)
 
-# general setup of meta/catalog table
-create_catalog_table()
-
 # load tabular data resource
 with open('../test_data/data.csv.json') as f:
     defs = json.load(f)
