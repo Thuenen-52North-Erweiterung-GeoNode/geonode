@@ -1,11 +1,22 @@
 from django.shortcuts import render
+from django.views import View
 from django.http import HttpResponse, JsonResponse
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
+from django.views.generic.edit import CreateView
+from django.core.files.storage import FileSystemStorage
+
 from . import urls
 from .database.database import query_dataset, get_column_definitions
+from .ingestion.ingest import ingest_zipped_dataset
 
-
+@require_http_methods(["GET", "POST"])
+@csrf_exempt
 def index(request):
-    return HttpResponse("Hello, world. You're at the polls index.")
+    if (request.method == "POST"):
+        return ingest_dataset(request)
+    else:
+        return JsonResponse({})
 
 def get_dataset_definition(request, dataset_id):
     return JsonResponse(get_column_definitions(dataset_id=dataset_id), safe=False)
@@ -53,3 +64,13 @@ def parse_sorting(params):
         return result
 
     return None
+
+def ingest_dataset(request):
+    
+    myfile = request.FILES['file']
+    fs = FileSystemStorage()
+    filename = fs.save(myfile.name, myfile)
+    
+    ingested_dataset_id = ingest_zipped_dataset(f"{fs.location}/{filename}")
+    return JsonResponse({"id": ingested_dataset_id})
+

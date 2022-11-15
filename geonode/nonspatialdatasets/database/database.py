@@ -23,7 +23,7 @@ def execute_statement(stmt, result_count=0):
         conn = psycopg2.connect(dbname=DATABASE_NAME, user=POSTGRES_USER, host=DATABASE_HOST, port=DATABASE_PORT, password=POSTGRES_PASSWORD)
         cur = conn.cursor()
         
-        logger.error("[NON SPATIAL] SQL Query: %s", stmt)
+        logger.debug("[NON SPATIAL] SQL Query: %s", stmt)
         cur.execute(stmt)
         
         if (result_count > 1):
