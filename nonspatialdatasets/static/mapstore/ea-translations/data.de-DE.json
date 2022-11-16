@@ -1,0 +1,9 @@
+{
+    "locale": "de-DE",
+    "messages": {
+        "nonspatialdatasets": {
+            "filter": "Externe Anwendungen",
+            "register": "Externe Anwendung"
+        }
+    }
+}

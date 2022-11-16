@@ -255,8 +255,3 @@ urlpatterns += [
     url(r'^metadata_update_redirect$', views.metadata_update_redirect, name='metadata_update_redirect'),
 ]
 
-
-
-urlpatterns += [
-    url(r'^nonspatial/', include('geonode.nonspatialdatasets.urls')),
-]

@@ -28,7 +28,7 @@ def get_dataset_data(request, dataset_id):
     
     f = parse_filters(params)
     s = parse_sorting(params)
-   
+
     return JsonResponse(query_dataset(dataset_id=dataset_id, filters=f, start=start, size=size, sort=s), safe=False)
 
 
