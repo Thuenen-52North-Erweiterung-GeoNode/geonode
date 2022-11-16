@@ -9,7 +9,7 @@ def run_setup_hooks(*args, **kwargs):
     from geonode.base.models import Menu, MenuItem, MenuPlaceholder
 
     LOCAL_ROOT = os.path.abspath(os.path.dirname(__file__))
-    settings.MAPSTORE_TRANSLATIONS_PATH += ("/static/mapstore/ea-translations",)
+    settings.MAPSTORE_TRANSLATIONS_PATH += ("/static/mapstore/nsd-translations",)
     settings.TEMPLATES[0]["DIRS"].insert(0, os.path.join(LOCAL_ROOT, "templates"))
 
     title = "Non-Spatial Datasets"

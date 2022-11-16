@@ -6,19 +6,19 @@
         const { filtersForm, cardsMenu } = localConfig.geoNodeConfiguration;
     
         filtersForm.items[0].items.push({
-            id: "externalapplication",
+            id: "nonspatialdataset",
             labelId: "nonspatialdatasets.filter",
             type: "filter",
             query: {
-                "filter{resource_type.in}": "externalapplication"
+                "filter{resource_type.in}": "nonspatialdataset"
             }
         });
 
         cardsMenu.items[0].items.push({
             labelId: "nonspatialdatasets.register",
-            value: "externalapplication",
+            value: "nonspatialdataset",
             type: "link",
-            href: "/external-applications/create",
+            href: "/non-spatial-datasets/create",
             authenticated: true,
             perms: [
                 {

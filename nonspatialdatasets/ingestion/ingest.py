@@ -23,9 +23,14 @@ def ingest_zipped_dataset(zip_file):
                 zip_ref.extractall(extract_path)
                 csv_file, json_file = verify_archive_contents(extract_path)
                 
-                dataset_title, columns, dialect = resolve_dataset_definitions(json_file)
+                tdr = load_tabular_data_resource(json_file)
                 
-                return ingest_csv_file(dataset_title, csv_file, columns, dialect)
+                dataset_title, dataset_name, dataset_abstract = extract_basic_metadata(tdr)
+                
+                columns, dialect = resolve_dataset_definitions(tdr)
+                
+                dataset_id = ingest_csv_file(dataset_title, csv_file, columns, dialect)
+                return dataset_title, dataset_name, dataset_abstract, dataset_id
             finally:
                 # cleanup after ingestion
                 shutil.rmtree(extract_path, ignore_errors=True)
@@ -55,16 +60,30 @@ def verify_archive_contents(content_dir):
     
     return os.path.join(content_dir, csv_file), os.path.join(content_dir, json_file)
 
-def resolve_dataset_definitions(json_file):
-    # load tabular data resource
+def load_tabular_data_resource(json_file):
     with open(json_file) as f:
-        defs = json.load(f)
+        tdr = json.load(f)
+        
+    if "name" not in tdr or "title" not in tdr or "schema" not in tdr:
+        raise Exception("Unexpected Tabular Data Resource JSON description")
+        
+    return tdr
 
+def extract_basic_metadata(tdr):
+    name = tdr["name"]
+    title = tdr["title"]
+    
+    if "description" in tdr:
+        description = tdr["description"]
+    
+    return name, title, description
+
+def resolve_dataset_definitions(tdr):
     # extract the actual column field definitions
-    columns = defs["schema"]["fields"]
+    columns = tdr["schema"]["fields"]
 
     # set up primary keys
-    for pk in defs["schema"]["primaryKey"]:
+    for pk in tdr["schema"]["primaryKey"]:
         print("Searching for %s" % pk)
         for c in columns:
             print("Here? %s" % c)
@@ -74,10 +93,10 @@ def resolve_dataset_definitions(json_file):
                 break
 
     dialect = None
-    if ("dialect" in defs):
-        dialect = defs["dialect"]
+    if ("dialect" in tdr):
+        dialect = tdr["dialect"]
 
-    return defs["name"], columns, dialect
+    return columns, dialect
 
 def ingest_csv_file(dataset_title, csv_file, columns, dialect):
     # request a target database table 

@@ -5,13 +5,13 @@
 
 {% block body %}
   <form action="" class="form-horizontal" method="post">
-    <legend>{% trans "Create External Application" %}</legend>
+    <legend>{% trans "Create Non-Spatial Dataset" %}</legend>
     {% csrf_token %}
     <div class="form-controls">
       {{ form|as_bootstrap }}
     </div>
     <div class="form-actions">
-      <input type="submit" value="{% trans "Create External Application" %}" class="btn btn-primary"/>
+      <input type="submit" value="{% trans "Create Non-Spatial Dataset" %}" class="btn btn-primary"/>
     </div>
   </form>
 {% endblock %}

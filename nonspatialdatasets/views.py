@@ -1,3 +1,4 @@
+import os
 from django.shortcuts import render
 from django.views import View
 from django.http import HttpResponse, JsonResponse
@@ -5,10 +6,13 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.edit import CreateView
 from django.core.files.storage import FileSystemStorage
+from django.contrib.auth import get_user_model
+import uuid
 
 from . import urls
 from .database.database import query_dataset, get_column_definitions
 from .ingestion.ingest import ingest_zipped_dataset
+from .models import NonSpatialDataset
 
 @require_http_methods(["GET", "POST"])
 @csrf_exempt
@@ -67,10 +71,18 @@ def parse_sorting(params):
 
 def ingest_dataset(request):
     
-    myfile = request.FILES['file']
+    payload_file = request.FILES['file']
     fs = FileSystemStorage()
-    filename = fs.save(myfile.name, myfile)
+    filename = fs.save(payload_file.name, payload_file)
     
-    ingested_dataset_id = ingest_zipped_dataset(f"{fs.location}/{filename}")
-    return JsonResponse({"id": ingested_dataset_id})
-
+    dataset_title, dataset_name, dataset_abstract, dataset_id = ingest_zipped_dataset(f"{fs.location}/{filename}")
+    
+    # TODO make the view with login_required
+    admin_name = os.getenv("ADMIN_USERNAME", "admin")
+    User = get_user_model()
+    admin_user = User.objects.get(username=admin_name)
+    
+    obj = NonSpatialDataset.objects.create(owner=admin_user,
+                url=f"/nonspatial/{dataset_id}", title=dataset_title, abstract=dataset_abstract,
+                resource_type = 'nonspatialdataset', uuid=str(uuid.uuid4()))
+    return JsonResponse({"id": dataset_id})
