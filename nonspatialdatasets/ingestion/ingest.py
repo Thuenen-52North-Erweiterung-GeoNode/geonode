@@ -29,8 +29,8 @@ def ingest_zipped_dataset(zip_file):
                 
                 columns, dialect = resolve_dataset_definitions(tdr)
                 
-                dataset_id = ingest_csv_file(dataset_title, csv_file, columns, dialect)
-                return dataset_title, dataset_name, dataset_abstract, dataset_id
+                dataset_id, dataset_table = ingest_csv_file(dataset_title, csv_file, columns, dialect)
+                return dataset_title, dataset_name, dataset_abstract, columns, dataset_id, dataset_table
             finally:
                 # cleanup after ingestion
                 shutil.rmtree(extract_path, ignore_errors=True)
@@ -134,4 +134,4 @@ def ingest_csv_file(dataset_title, csv_file, columns, dialect):
     # insert all data into the dataset table
     insert_data_rows(target_table, columns, data)
 
-    return dataset_id
+    return dataset_id, target_table

@@ -16,13 +16,18 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='NonSpatialDataset',
             fields=[
-                ('geoapp_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='geoapps.geoapp')),
-                ('url', models.URLField(help_text='Link to the dataset', max_length=2000)),
+                ('resourcebase_ptr', models.OneToOneField(parent_link=True, on_delete=models.CASCADE,
+                                                          auto_created=True, primary_key=True, serialize=False, to='base.ResourceBase')),
+                ('postgres_url', models.URLField(help_text='Link to the dataset', max_length=2000, null=True, blank=True)),
+                ('database_table', models.CharField(max_length=255, null=True, blank=True)),
+                ('column_definitions', models.TextField(help_text='brief narrative summary of the content of the resource(s)')),
+                
             ],
             options={
                 'abstract': False,
                 'base_manager_name': 'objects',
             },
-            bases=('geoapps.geoapp',),
+            bases=('base.resourcebase',),
         ),
     ]
+
