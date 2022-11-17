@@ -20,6 +20,8 @@ class Migration(migrations.Migration):
                                                           auto_created=True, primary_key=True, serialize=False, to='base.ResourceBase')),
                 ('postgres_url', models.URLField(help_text='Link to the dataset', max_length=2000, null=True, blank=True)),
                 ('database_table', models.CharField(max_length=255, null=True, blank=True)),
+                ('database_user', models.CharField(max_length=255, null=True, blank=True)),
+                ('database_password', models.CharField(max_length=255, null=True, blank=True)),
                 ('column_definitions', models.TextField(help_text='brief narrative summary of the content of the resource(s)')),
                 
             ],
