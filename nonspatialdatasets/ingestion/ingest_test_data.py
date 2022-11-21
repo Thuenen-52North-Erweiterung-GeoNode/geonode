@@ -16,12 +16,9 @@ columns = defs["schema"]["fields"]
 
 # set up primary keys
 for pk in defs["schema"]["primaryKey"]:
-    print("Searching for %s" % pk)
     for c in columns:
-        print("Here? %s" % c)
         if c["name"] == pk:
             c["primaryKey"] = True
-            print("yay")
             break
 
 # request a target database table 

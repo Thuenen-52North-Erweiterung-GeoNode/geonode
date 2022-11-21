@@ -7,12 +7,14 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.edit import CreateView
 from django.core.files.storage import FileSystemStorage
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist
 import uuid
 import json
 
 from . import urls
 from .database.database import query_dataset, get_column_definitions
-from .ingestion.ingest import ingest_zipped_dataset
+from .database.db_models import NonSpatialDatasetParameters
+from .ingestion.ingest import ingest_zipped_dataset, register_dataset
 from .models import NonSpatialDataset
 
 @require_http_methods(["GET", "POST"])
@@ -27,6 +29,14 @@ def get_dataset_definition(request, dataset_id):
     return JsonResponse(get_column_definitions(dataset_id=dataset_id), safe=False)
 
 def get_dataset_data(request, dataset_id):
+    try:
+        nsd_obj = NonSpatialDataset.objects.get(id=dataset_id)
+    except ObjectDoesNotExist:
+        return JsonResponse({
+            'status_code': 404,
+            'error': 'The resource was not found'
+        })
+    
     params = request.GET
     size = extract_int_parameter(params, "size", 50)
     start = extract_int_parameter(params, "start", 0)
@@ -34,7 +44,15 @@ def get_dataset_data(request, dataset_id):
     f = parse_filters(params)
     s = parse_sorting(params)
 
-    return JsonResponse(query_dataset(dataset_id=dataset_id, filters=f, start=start, size=size, sort=s), safe=False)
+    try:
+        result = query_dataset(dataset_id=nsd_obj.internal_database_id, filters=f, start=start, size=size, sort=s, connection_string=nsd_obj.postgres_url, database_table=nsd_obj.database_table)
+    except Exception as e:
+        return JsonResponse({
+            'status_code': 500,
+            'error': 'Internal Server Error: %s' % e
+        })
+    
+    return JsonResponse(result, safe=False)
 
 
 def extract_int_parameter(params, key, default_value):
@@ -71,12 +89,20 @@ def parse_sorting(params):
     return None
 
 def ingest_dataset(request):
-    
-    payload_file = request.FILES['file']
-    fs = FileSystemStorage()
-    filename = fs.save(payload_file.name, payload_file)
-    
-    dataset_title, dataset_name, dataset_abstract, columns, dataset_id, dataset_table = ingest_zipped_dataset(f"{fs.location}/{filename}")
+    ct = request.META.get('CONTENT_TYPE')
+
+    if (ct and ct == "application/json"):
+        if not request.body:
+            raise Exception("No POST body provided")
+        
+        tdr = json.loads(request.body)
+        params = register_dataset(tdr)
+    else:
+        payload_file = request.FILES['file']
+        fs = FileSystemStorage()
+        filename = fs.save(payload_file.name, payload_file)
+        
+        params = ingest_zipped_dataset(f"{fs.location}/{filename}")
     
     # TODO make the view with login_required
     admin_name = os.getenv("ADMIN_USERNAME", "admin")
@@ -84,8 +110,11 @@ def ingest_dataset(request):
     admin_user = User.objects.get(username=admin_name)
     
     obj = NonSpatialDataset.objects.create(owner=admin_user,
-                column_definitions=json.dumps(columns),
-                database_table=dataset_table,
+                column_definitions=json.dumps(params.column_definitions),
+                postgres_url=params.postgres_url,
+                internal_database_id=params.dataset_id,
+                database_table=params.dataset_table,
                 resource_type='nonspatialdataset',
                 uuid=str(uuid.uuid4()))
-    return JsonResponse({"id": dataset_id})
+    
+    return JsonResponse({"id": obj.id})

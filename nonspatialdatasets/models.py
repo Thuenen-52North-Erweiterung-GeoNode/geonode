@@ -12,6 +12,8 @@ class NonSpatialDataset(ResourceBase):
         blank=True,
         help_text='The Postgres connection string as a URL (optional). If empty, the API will lookup the default GeoNode database')
     
+    internal_database_id = models.IntegerField('Internal Database ID', null=True, blank=True)
+    
     database_table = models.CharField('Database Table', max_length=255, null=True, blank=True)
     database_user = models.CharField('Database User', max_length=255, null=True, blank=True)
     database_password = models.CharField('Database Password', max_length=255, null=True, blank=True)

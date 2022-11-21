@@ -16,11 +16,16 @@ CATALOG_DB_NAME = "non_spatial_datasets"
 
 MAX_STRING_FIELD_LENGTH = 256
 
-def execute_statement(stmt, result_count=0):
+def execute_statement(stmt, result_count=0, connection_string=None):
     conn = None
     result = None
     try:
-        conn = psycopg2.connect(dbname=DATABASE_NAME, user=POSTGRES_USER, host=DATABASE_HOST, port=DATABASE_PORT, password=POSTGRES_PASSWORD)
+        if connection_string:
+            # a custom DB connection string is defined
+            conn = psycopg2.connect(connection_string)
+        else:
+            # use the default database
+            conn = psycopg2.connect(dbname=DATABASE_NAME, user=POSTGRES_USER, host=DATABASE_HOST, port=DATABASE_PORT, password=POSTGRES_PASSWORD)
         cur = conn.cursor()
         
         logger.debug("[NON SPATIAL] SQL Query: %s", stmt)
@@ -36,6 +41,7 @@ def execute_statement(stmt, result_count=0):
         logger.error(
             "Error executing statement: %s",
             str(e))
+        logger.exception(e)
         raise e
     finally:
         try:
@@ -182,7 +188,7 @@ def construct_sql_filter(filter_def, column_defs):
     
     return None
     
-def query_dataset(dataset_id, start=0, size=50, filters=None, sort=None):
+def query_dataset(dataset_id, start=0, size=50, filters=None, sort=None, connection_string=None, database_table=None):
     # load column defs
     column_defs = get_column_definitions(dataset_id)
     
@@ -203,12 +209,16 @@ def query_dataset(dataset_id, start=0, size=50, filters=None, sort=None):
             where = f" WHERE {sql_defs} "
     
     # contruct the query
-    target_table = resolve_dataset_table(dataset_id)
+    if (not database_table):
+        target_table = resolve_dataset_table(dataset_id)
+    else:
+        target_table = database_table
+    
     stmt = f"SELECT * from {target_table} {where} {order} LIMIT {size} OFFSET {start};"
     
     # construct a nice array of dicts
     result = []
-    data = execute_statement(stmt, size)
+    data = execute_statement(stmt, size, connection_string)
     
     for d in data:
         i = 0

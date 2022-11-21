@@ -19,6 +19,7 @@ class Migration(migrations.Migration):
                 ('resourcebase_ptr', models.OneToOneField(parent_link=True, on_delete=models.CASCADE,
                                                           auto_created=True, primary_key=True, serialize=False, to='base.ResourceBase')),
                 ('postgres_url', models.URLField(help_text='Link to the dataset', max_length=2000, null=True, blank=True)),
+                ('internal_database_id', models.IntegerField(help_text='The ID of the dataset in the internal database', null=True, blank=True)),
                 ('database_table', models.CharField(max_length=255, null=True, blank=True)),
                 ('database_user', models.CharField(max_length=255, null=True, blank=True)),
                 ('database_password', models.CharField(max_length=255, null=True, blank=True)),

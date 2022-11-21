@@ -7,8 +7,10 @@ import os
 import shutil
 import json
 import csv
+from urllib.parse import urlencode, urlparse, urlunparse, parse_qs
 
 from ..database.database import create_dataset_table, insert_data_rows, insert_catalog_entry, query_dataset
+from ..database.db_models import NonSpatialDatasetParameters
 
 def ingest_zipped_dataset(zip_file):
     mt = mimetypes.guess_type(zip_file)
@@ -30,7 +32,7 @@ def ingest_zipped_dataset(zip_file):
                 columns, dialect = resolve_dataset_definitions(tdr)
                 
                 dataset_id, dataset_table = ingest_csv_file(dataset_title, csv_file, columns, dialect)
-                return dataset_title, dataset_name, dataset_abstract, columns, dataset_id, dataset_table
+                return NonSpatialDatasetParameters(dataset_id, dataset_title, dataset_name, dataset_abstract, columns, dataset_table)
             finally:
                 # cleanup after ingestion
                 shutil.rmtree(extract_path, ignore_errors=True)
@@ -40,6 +42,50 @@ def ingest_zipped_dataset(zip_file):
         
     else:
         raise Exception("Unsupported file type")
+    
+    
+def validate_connection_url_and_extract_table(path_url):
+    if (path_url.scheme != "postgres"):
+        raise Exception("Invalid scheme provided in connection URL")
+    
+    if (not path_url.hostname):
+        raise Exception("Invalid host provided in connection URL")
+    
+    if (not path_url.username):
+        raise Exception("No username provided in connection URL")
+    
+    if (not path_url.password):
+        raise Exception("No password provided in connection URL")
+    
+    if (not path_url.query or len(path_url.query) == 0):
+        raise Exception("No database table provided as a query parameter")
+    else:
+        qs = parse_qs(path_url.query)
+        if "table" in qs and len(qs["table"][0]) > 0:
+            return qs["table"][0]
+        else:
+            raise Exception("Invalid database table provided as a query parameter")
+    
+def register_dataset(tabular_data_resource):
+    if "path" not in tabular_data_resource or len(tabular_data_resource["path"]) < len("postgres://___"):
+        raise Exception("No or invalid 'path' attribute defined in the Tabular Data Resource definition.")
+
+    path_url = urlparse(tabular_data_resource["path"])
+    target_table = validate_connection_url_and_extract_table(path_url)
+
+    dataset_title, dataset_name, dataset_abstract = extract_basic_metadata(tabular_data_resource)
+                
+    columns, dialect = resolve_dataset_definitions(tabular_data_resource)
+    
+    # store the dataset table name in our meta/catalog table
+    dataset_id = insert_catalog_entry(target_table, columns)
+    
+    # remove the custom 'table' as it is not valid for a postgres connection URL
+    query = parse_qs(path_url.query, keep_blank_values=True)
+    query.pop('table', None)
+    path_url = path_url._replace(query=urlencode(query, True))
+    
+    return NonSpatialDatasetParameters(dataset_id, dataset_title, dataset_name, dataset_abstract, columns, target_table, urlunparse(path_url))
     
 def verify_archive_contents(content_dir):
     csv_file = None
@@ -84,12 +130,9 @@ def resolve_dataset_definitions(tdr):
 
     # set up primary keys
     for pk in tdr["schema"]["primaryKey"]:
-        print("Searching for %s" % pk)
         for c in columns:
-            print("Here? %s" % c)
             if c["name"] == pk:
                 c["primaryKey"] = True
-                print("yay")
                 break
 
     dialect = None

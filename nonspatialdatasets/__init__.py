@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 def insert_base_data():
-    logger.warn("Loading non-spatial static data")
+    logger.info("Loading non-spatial static data")
     from django.conf import settings
     from geonode.urls import urlpatterns
     from geonode.base.models import Menu, MenuItem, MenuPlaceholder
@@ -25,7 +25,7 @@ def insert_base_data():
 
         if not Menu.objects.filter(title=title).exists():
             if (not MenuPlaceholder.objects.filter(name="TOPBAR_MENU_LEFT").first()):
-                logger.warn(f"MenuPlaceholder not yet created. Skipping")
+                logger.info(f"MenuPlaceholder not yet created. Skipping")
                 return
 
             ph = MenuPlaceholder.objects.filter(name="TOPBAR_MENU_LEFT").first()        
@@ -34,8 +34,9 @@ def insert_base_data():
                                     url="/catalogue/#/search/?f=nonspatialdataset")
 
         urlpatterns += [url(r'^nonspatial/', include('nonspatialdatasets.urls'))]
+        logger.info("Non-spatial datasets contrib module loaded")
     except Exception as e:
-        logger.warn(f"NON SPATIAL: {e}")
+        logger.exception(e)
 
 class NonSpatialDatasetsConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
