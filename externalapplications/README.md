@@ -8,7 +8,13 @@ It integrates as any other resource type so that GeoNode can index, search, and 
 
 ## Installation and Configuration
 
-The app must be added to the `INSTALLED_APPS` settings.
+To activate the external application app, add the following to the `settings.py`:
+
+```py
+INSTALLED_APPS += ( 'externalapplications', )
+EXTERNAL_APPLICATION_MENU_FILTER_AUTOCREATE = os.getenv('EXTERNAL_APPLICATION_MENU_FILTER_AUTOCREATE ', False)
+```
+
 Make sure to add it _after_ the `geonode_mapstore_client` app as it makes client configuration adjustments via the mapstore templates.
 
 Create database migrations and apply them via:
