@@ -29,4 +29,8 @@ python manage.py migrate
 The app adds the resource type `externalapplication` on which you can apply filter on (either by API or mapstore-client search).
 
 If you want the app to create a quick filter menu entry automatically, set `EXTERNAL_APPLICATION_MENU_FILTER_AUTOCREATE=True`.
-In case you want to manually add such entry use the GeoNode admin to create a `MenuItem` and point to the URL `/catalogue/#/search/?f=externalapplication`.
+
+In case you want to manually add such entry use the GeoNode admin. 
+First create a `Menu` _External Application_ which you put under placeholder `TOPBAR_MENU_LEFT`. 
+After that, create a `MenuItem` to create a `MenuItem` _External Application_ and select the `Menu` you created.
+To filter all external applications add the URL `/catalogue/#/search/?f=externalapplication`.
