@@ -20,7 +20,7 @@ import os
 import logging
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth import get_user_model
 from django.views.decorators.csrf import csrf_exempt
 from pycsw import server
@@ -330,3 +330,7 @@ def csw_render_extra_format_html(request, layeruuid, resname):
     extra_res_md['poc_email'] = pocp.email
     return render(request, "geonode_metadata_full.html", context={"resource": resource,
                                                                   "extra_res_md": extra_res_md})
+
+def resolve_uuid(request, uuid):
+    resource = ResourceBase.objects.get(uuid=uuid)
+    return redirect(resource)
