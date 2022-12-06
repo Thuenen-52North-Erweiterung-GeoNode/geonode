@@ -1,10 +1,10 @@
 from django.db import models
-from geonode.base.models import ResourceBase
+from geonode.layers.models import Dataset
 import logging
 
 logger = logging.getLogger(__name__)
 
-class NonSpatialDataset(ResourceBase):
+class NonSpatialDataset(Dataset):
     
     postgres_url = models.URLField(
         'Postgres URL',

@@ -114,7 +114,9 @@ def ingest_dataset(request):
                 postgres_url=params.postgres_url,
                 internal_database_id=params.dataset_id,
                 database_table=params.dataset_table,
-                resource_type='nonspatialdataset',
+                resource_type='dataset',
+                subtype='nonspatial',
+                name=params.dataset_name,
                 uuid=str(uuid.uuid4()))
     
     return JsonResponse({"id": obj.id})

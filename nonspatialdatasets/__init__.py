@@ -31,7 +31,7 @@ def insert_base_data():
             ph = MenuPlaceholder.objects.filter(name="TOPBAR_MENU_LEFT").first()        
             menu = Menu.objects.create(title=title, placeholder=ph, order=1)
             MenuItem.objects.create(title=title, menu=menu, order=1, blank_target=False,
-                                    url="/catalogue/#/search/?f=nonspatialdataset")
+                                    url="/catalogue/#/search/?f=dataset&f=store-nonspatial")
 
         urlpatterns += [url(r'^nonspatial/', include('nonspatialdatasets.urls'))]
         logger.info("Non-spatial datasets contrib module loaded")

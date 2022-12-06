@@ -1,34 +1,45 @@
 {% extends 'geonode-mapstore-client/_geonode_config.html' %}
 {% block override_local_config %}
 <script>
-    window.__GEONODE_CONFIG__.overrideLocalConfig = function(localConfig, _) {
-        // Here the localConfig can be overridden and/or extended
-        const { filtersForm, cardsMenu } = localConfig.geoNodeConfiguration;
-    
-        filtersForm.items[0].items.push({
-            id: "nonspatialdataset",
-            labelId: "nonspatialdatasets.filter",
-            type: "filter",
-            query: {
-                "filter{resource_type.in}": "nonspatialdataset"
+    (function() {
+        const { overrideLocalConfig } = window.__GEONODE_CONFIG__;
+
+        window.__GEONODE_CONFIG__.overrideLocalConfig = function(localConfig, _) {
+            if (overrideLocalConfig) {
+                overrideLocalConfig(localConfig, _)
             }
-        });
 
-        cardsMenu.items[0].items.push({
-            labelId: "nonspatialdatasets.register",
-            value: "nonspatialdataset",
-            type: "link",
-            href: "/non-spatial-datasets/create",
-            authenticated: true,
-            perms: [
-                {
-                    "type": "user",
-                    "value": "add_resource"
-                }
-            ]
-        });
+            const { filtersForm, cardsMenu } = localConfig.geoNodeConfiguration;
+        
+            const datasetItem = filtersForm.items[0].items.filter(i => i.id === 'dataset');
 
-        return localConfig;
-    };
+            if (datasetItem[0] && datasetItem[0].items.filter(i => id === 'store-nonspatial').length === 0) {
+                datasetItem[0].items.push({
+                    id: "store-nonspatial",
+                    labelId: "gnhome.nonSpatial",
+                    type: "filter",
+                    query: {
+                        "filter{subtype.in}": "nonspatial"
+                    }
+                });
+            }
+
+            cardsMenu.items[0].items.push({
+                labelId: "gnhome.nonSpatial",
+                value: "nonspatialdataset",
+                type: "link",
+                href: "/non-spatial-datasets/create",
+                authenticated: true,
+                perms: [
+                    {
+                        "type": "user",
+                        "value": "add_resource"
+                    }
+                ]
+            });
+
+            return localConfig;
+        };
+    })();
 </script>
 {% endblock %}
