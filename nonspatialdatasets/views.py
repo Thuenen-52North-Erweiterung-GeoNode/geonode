@@ -16,6 +16,7 @@ from .database.database import query_dataset, get_column_definitions
 from .database.db_models import NonSpatialDatasetParameters
 from .ingestion.ingest import ingest_zipped_dataset, register_dataset
 from .models import NonSpatialDataset
+from .coding.csv_encoder import encode_as_csv
 
 @require_http_methods(["GET", "POST"])
 @csrf_exempt
@@ -54,10 +55,66 @@ def get_dataset_data(request, dataset_id):
     
     return JsonResponse(result, safe=False)
 
+def export_dataset_data(request, dataset_id):
+    try:
+        nsd_obj = NonSpatialDataset.objects.get(id=dataset_id)
+    except ObjectDoesNotExist:
+        return JsonResponse({
+            'status_code': 404,
+            'error': 'The resource was not found'
+        })
+    
+    params = request.GET
+    f = extract_string_parameter(params, "format", "csv")
+    
+    if (f not in ["json", "csv"]):
+        return JsonResponse({
+            'status_code': 400,
+            'error': f'Unsupported format: {f}'
+        })
+    
+    size = 1000
+    start = 0
+    full_data = []
+    try:
+        result = query_dataset(dataset_id=nsd_obj.internal_database_id, start=start, size=size, connection_string=nsd_obj.postgres_url, database_table=nsd_obj.database_table)
+        while(len(result) > 0):
+            full_data.extend(result)
+            start += size
+            result = query_dataset(dataset_id=nsd_obj.internal_database_id, start=start, size=size, connection_string=nsd_obj.postgres_url, database_table=nsd_obj.database_table)
+        
+    except Exception as e:
+        return JsonResponse({
+            'status_code': 500,
+            'error': 'Internal Server Error: %s' % e
+        })
+
+
+
+    if (f == "json"):
+        return JsonResponse(full_data, safe=False)
+    elif (f == "csv"):
+        return encode_csv(full_data)
+
+def encode_csv(full_data):
+    content = encode_as_csv(full_data)
+    
+    response = HttpResponse(content, content_type='text/csv')
+    response['Content-Length'] = len(content)
+
+    return response
 
 def extract_int_parameter(params, key, default_value):
     if (key in params and len(params[key]) == 1 and params[key][0].isnumeric()):
-            return int(params[key][0])
+        return int(params[key][0])
+    return default_value
+
+def extract_string_parameter(params, key, default_value):
+    if key in params:
+        if isinstance(params[key], str):
+            return params[key]
+        else:
+            return params[key][0]
     return default_value
 
 def parse_filters(params):
