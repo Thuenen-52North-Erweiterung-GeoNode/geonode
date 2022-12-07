@@ -24,18 +24,6 @@ def insert_base_data():
 
         title = "Non-Spatial Datasets"
 
-        if not Menu.objects.filter(title=title).exists():
-            ph = MenuPlaceholder.objects.filter(name="TOPBAR_MENU_LEFT").first()
-            if (not ph):
-                logger.info(f"MenuPlaceholder not yet created. Skipping")
-                return
-
-            max_order = Menu.objects.filter(placeholder=ph).aggregate(Max("order"))["order__max"]
-            order = 0 if max_order is None else max_order + 1
-            menu = Menu.objects.create(title=title, placeholder=ph, order=order)
-            MenuItem.objects.create(title=title, menu=menu, order=1, blank_target=False,
-                                    url="/catalogue/#/search/?f=dataset&f=store-nonspatial")
-
         urlpatterns += [url(r'^nonspatial/', include('nonspatialdatasets.urls'))]
         logger.info("Non-spatial datasets contrib module loaded")
     except Exception as e:
