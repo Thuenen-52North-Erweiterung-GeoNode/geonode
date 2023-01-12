@@ -23,14 +23,13 @@ RUN apt-get install -y \
     libmemcached-dev libldap2-dev libsasl2-dev libffi-dev
 
 RUN apt-get install -y --no-install-recommends \
-    gcc zip gettext geoip-bin cron \
+    gcc zip gettext gdal-bin geoip-bin cron \
     postgresql-client-13 \
     sqlite3 spatialite-bin libsqlite3-mod-spatialite \
     python3-all-dev python3-dev \
     python3-gdal python3-psycopg2 python3-ldap \
     python3-pip python3-pil python3-lxml python3-pylibmc \
-    uwsgi uwsgi-plugin-python3 \
-    firefox-esr
+    uwsgi uwsgi-plugin-python3
 
 RUN apt-get install -y devscripts build-essential debhelper pkg-kde-tools sharutils
 # RUN git clone https://salsa.debian.org/debian-gis-team/proj.git /tmp/proj
