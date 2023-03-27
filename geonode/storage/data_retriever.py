@@ -213,12 +213,15 @@ class DataRetriever(object):
         for _file in Path(self.temporary_folder).iterdir():
             if not zipfile.is_zipfile(str(_file)):
                 if any([_file.name.endswith(_ext) for _ext in base_file_choices]):
-                    self.file_paths['base_file'] = Path(str(_file))
+                    self.file_paths["base_file"] = Path(str(_file))
                 ext = _file.name.split(".")[-1]
                 if f"{ext}_file" in self.file_paths:
                     existing = self.file_paths[f"{ext}_file"]
-                    self.file_paths[f"{ext}_file"] = [ Path(str(_file)), *(existing if type(existing) == list else [existing]) ]
-                else: 
+                    self.file_paths[f"{ext}_file"] = [
+                        Path(str(_file)),
+                        *(existing if type(existing) == list else [existing]),
+                    ]
+                else:
                     self.file_paths[f"{ext}_file"] = Path(str(_file))
 
         tmp = self.file_paths.copy()
