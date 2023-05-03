@@ -1814,14 +1814,17 @@ def set_time_info(layer, attribute, end_attribute, presentation, precision_value
     info = DimensionInfo(
         "time", enabled, presentation, resolution, "ISO8601", None, attribute=attribute, end_attribute=end_attribute
     )
-    if resource and resource.metadata:
+    if resource and hasattr(resource, "metadata") and resource.metadata:
         metadata = dict(resource.metadata or {})
     else:
         metadata = dict({})
     metadata["time"] = info
 
-    if resource and resource.metadata:
+    if resource and hasattr(resource, "metadata") and resource.metadata:
         resource.metadata = metadata
+    else:
+        setattr(resource, "metadata", metadata)
+
     if resource:
         gs_catalog.save(resource)
 
@@ -2278,6 +2281,22 @@ def get_dataset_type(spatial_files):
     else:
         the_dataset_type = spatial_files[0].file_type.dataset_type
     return the_dataset_type
+
+
+def get_dataset_capabilities_url(layer, version="1.3.0", access_token=None):
+    """
+    Generate the layer-specific GetCapabilities URL
+    """
+    workspace_layername = layer.alternate.split(":") if ":" in layer.alternate else ("", layer.alternate)
+    wms_url = ogc_server_settings.LOCATION
+    if not layer.remote_service:
+        wms_url = f"{wms_url}{'/'.join(workspace_layername)}/wms?service=wms&version={version}&request=GetCapabilities"  # noqa
+        if access_token:
+            wms_url += f"&access_token={access_token}"
+    else:
+        wms_url = f"{layer.remote_service.service_url}?service=wms&version={version}&request=GetCapabilities"
+
+    return wms_url
 
 
 def wps_format_is_supported(_format, dataset_type):
