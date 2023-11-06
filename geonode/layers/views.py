@@ -183,11 +183,9 @@ def dataset_upload_metadata(request):
                 upload_session.processed = True
                 upload_session.save()
             out["success"] = True
+            status_code = 200
             if dataset_uuid and layer.uuid != dataset_uuid:
-                status_code = 199
-                out["errors"] = "WARNING: UUID of dataset and metadata are different. Metadata XML was still uploaded"
-            else:
-                status_code = 200
+                out["warning"] = "WARNING: UUID of dataset and metadata are different. Metadata XML was still uploaded"
             return HttpResponse(json.dumps(out), content_type="application/json", status=status_code)
 
         else:
