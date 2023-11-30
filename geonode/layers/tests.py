@@ -1003,9 +1003,9 @@ class DatasetsTest(GeoNodeBaseTestSupport):
         prev_dataset = Dataset.objects.get(typename="geonode:single_point")
         self.assertEqual(0, prev_dataset.keywords.count())
         resp = self.client.post(reverse("dataset_upload"), params)
-        self.assertEqual(404, resp.status_code)
+        self.assertEqual(200, resp.status_code)
         self.assertEqual(
-            resp.json()["errors"], "The UUID identifier from the XML Metadata, is different from the one saved"
+            resp.json()["warning"], "WARNING: The XML's UUID was ignored while updating this dataset's metadata because that UUID is already present in this system. The rest of the XML's metadata was applied."
         )
 
     def test_sld_should_raise_500_if_is_invalid(self):
@@ -1056,7 +1056,7 @@ class DatasetsTest(GeoNodeBaseTestSupport):
     def test_xml_should_raise_an_error_if_the_uuid_is_changed(self):
         """
         If the UUID coming from the XML and the one saved in the DB are different
-        The system should raise an error
+        The system should not raise an error, instead it should simply update the values
         """
         params = {
             "permissions": '{ "users": {"AnonymousUser": ["view_resourcebase"]} , "groups":{}}',
@@ -1072,10 +1072,10 @@ class DatasetsTest(GeoNodeBaseTestSupport):
         prev_dataset = Dataset.objects.get(typename="geonode:single_point")
         self.assertEqual(0, prev_dataset.keywords.count())
         resp = self.client.post(reverse("dataset_upload"), params)
-        self.assertEqual(404, resp.status_code)
+        self.assertEqual(200, resp.status_code)
         expected = {
-            "success": False,
-            "errors": "The UUID identifier from the XML Metadata, is different from the one saved",
+            "success": True,
+            "warning": "WARNING: The XML's UUID was ignored while updating this dataset's metadata because that UUID is already present in this system. The rest of the XML's metadata was applied.",
         }
         self.assertDictEqual(expected, resp.json())
 
