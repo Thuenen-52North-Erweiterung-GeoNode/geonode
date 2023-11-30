@@ -147,7 +147,7 @@ class DatasetViewSet(DynamicModelViewSet):
             except Exception:
                 raise GeneralDatasetException(detail="Failed to update metadata")
             out["success"] = True
-            out_message = 'Metadata successfully updated'
+            out_message = "Metadata successfully updated"
             if dataset_uuid and dataset.uuid != dataset_uuid:
                 out_message += " The UUID identifier from the XML Metadata is different from the one saved"
             out["message"] = [out_message]

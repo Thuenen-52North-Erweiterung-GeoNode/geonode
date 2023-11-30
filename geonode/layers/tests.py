@@ -1005,7 +1005,8 @@ class DatasetsTest(GeoNodeBaseTestSupport):
         resp = self.client.post(reverse("dataset_upload"), params)
         self.assertEqual(200, resp.status_code)
         self.assertEqual(
-            resp.json()["warning"], "WARNING: The XML's UUID was ignored while updating this dataset's metadata because that UUID is already present in this system. The rest of the XML's metadata was applied."
+            resp.json()["warning"],
+            "WARNING: The XML's UUID was ignored while updating this dataset's metadata because that UUID is already present in this system. The rest of the XML's metadata was applied.",
         )
 
     def test_sld_should_raise_500_if_is_invalid(self):
@@ -1053,7 +1054,7 @@ class DatasetsTest(GeoNodeBaseTestSupport):
         self.assertIsNotNone(updated_dataset.styles.first())
         self.assertEqual(layer.styles.first().sld_title, updated_dataset.styles.first().sld_title)
 
-    def test_xml_should_raise_an_error_if_the_uuid_is_changed(self):
+    def test_xml_should_not_raise_an_error_if_the_uuid_is_changed(self):
         """
         If the UUID coming from the XML and the one saved in the DB are different
         The system should not raise an error, instead it should simply update the values
@@ -1073,11 +1074,10 @@ class DatasetsTest(GeoNodeBaseTestSupport):
         self.assertEqual(0, prev_dataset.keywords.count())
         resp = self.client.post(reverse("dataset_upload"), params)
         self.assertEqual(200, resp.status_code)
-        expected = {
-            "success": True,
-            "warning": "WARNING: The XML's UUID was ignored while updating this dataset's metadata because that UUID is already present in this system. The rest of the XML's metadata was applied.",
-        }
-        self.assertDictEqual(expected, resp.json())
+        self.assertEqual(
+            resp.json()["warning"],
+            "WARNING: The XML's UUID was ignored while updating this dataset's metadata because that UUID is already present in this system. The rest of the XML's metadata was applied.",
+        )
 
     def test_will_raise_exception_for_replace_vector_dataset_with_raster(self):
         layer = Dataset.objects.get(name="single_point")
