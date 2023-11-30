@@ -576,7 +576,6 @@ define(function (require, exports) {
             callback(array);
         } else if (resp.success === true) {
             self.polling = false;
-            console.log(resp)
             self.displayUploadedLayerLinks(resp);
 
             callback(array);
