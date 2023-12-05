@@ -1460,9 +1460,18 @@ class ResourceBase(PolymorphicModel, PermissionLevelMixin, ItemBase):
             if link.link_type == "metadata":  # avoid recursion
                 continue
             if link.link_type == "html":
-                links.append({'name':self.title, 'description':"Web address (URL)", 'protocol':"WWW:LINK-1.0-http--link", 'url':link.url})
+                links.append(
+                    {
+                        "name": self.title,
+                        "description": "Web address (URL)",
+                        "protocol": "WWW:LINK-1.0-http--link",
+                        "url": link.url,
+                    }
+                )
             elif link.link_type in ("OGC:WMS", "OGC:WFS", "OGC:WCS"):
-                links.append({'name':self.title, 'description':link.name, 'protocol':link.link_type, 'url':link.url})
+                links.append(
+                    {"name": self.title, "description": link.name, "protocol": link.link_type, "url": link.url}
+                )
             else:
                 _link_type = "WWW:DOWNLOAD-1.0-http--download"
                 try:
@@ -1474,7 +1483,7 @@ class ResourceBase(PolymorphicModel, PermissionLevelMixin, ItemBase):
                 except Exception as e:
                     logger.exception(e)
                 description = f"{self.title} ({link.name} Format)"
-                links.append({'name':self.title, 'description':description, 'protocol':_link_type, 'url':link.url})
+                links.append({"name": self.title, "description": description, "protocol": _link_type, "url": link.url})
         return json.dumps(links)
 
     @property
