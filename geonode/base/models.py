@@ -1453,6 +1453,12 @@ class ResourceBase(PolymorphicModel, PermissionLevelMixin, ItemBase):
             except ZeroDivisionError:
                 pass
 
+    # The name is changed from download_links to download_urls because PyCSW
+    # mutates the links if the name includes 'link'. This mutation causes
+    # links to be failed to parse. Also, the result returned is a string
+    # that can be loaded by the JSON package. This change can be reverted
+    # when the PR (https://github.com/geopython/pycsw/pull/927) is
+    # merged for PyCSW.
     def download_urls(self):
         """assemble download links for pycsw"""
         links = []
