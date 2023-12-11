@@ -216,7 +216,7 @@ class Catalogue(CatalogueServiceWeb):
         }
 
         # locate all distribution links
-        result["download_urls"] = self.extract_links(rec)
+        result["download_links"] = self.extract_links(rec)
 
         # construct the link to the Catalogue metadata record (not
         # self-indexed)
