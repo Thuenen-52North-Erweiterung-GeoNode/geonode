@@ -1453,31 +1453,16 @@ class ResourceBase(PolymorphicModel, PermissionLevelMixin, ItemBase):
             except ZeroDivisionError:
                 pass
 
-    # The name is changed from download_links to download_urls because PyCSW
-    # mutates the links if the name includes 'link'. This mutation causes
-    # links to be failed to parse. Also, the result returned is a string
-    # that can be loaded by the JSON package. This change can be reverted
-    # when the PR (https://github.com/geopython/pycsw/pull/927) is
-    # merged for PyCSW.
-    def download_urls(self):
+    def download_links(self):
         """assemble download links for pycsw"""
         links = []
         for link in self.link_set.all():
             if link.link_type == "metadata":  # avoid recursion
                 continue
             if link.link_type == "html":
-                links.append(
-                    {
-                        "name": self.title,
-                        "description": "Web address (URL)",
-                        "protocol": "WWW:LINK-1.0-http--link",
-                        "url": link.url,
-                    }
-                )
+                links.append((self.title, "Web address (URL)", "WWW:LINK-1.0-http--link", link.url))
             elif link.link_type in ("OGC:WMS", "OGC:WFS", "OGC:WCS"):
-                links.append(
-                    {"name": self.title, "description": link.name, "protocol": link.link_type, "url": link.url}
-                )
+                links.append((self.title, link.name, link.link_type, link.url))
             else:
                 _link_type = "WWW:DOWNLOAD-1.0-http--download"
                 try:
@@ -1489,8 +1474,8 @@ class ResourceBase(PolymorphicModel, PermissionLevelMixin, ItemBase):
                 except Exception as e:
                     logger.exception(e)
                 description = f"{self.title} ({link.name} Format)"
-                links.append({"name": self.title, "description": description, "protocol": _link_type, "url": link.url})
-        return json.dumps(links)
+                links.append((self.title, description, _link_type, link.url))
+        return links
 
     @property
     def embed_url(self):
