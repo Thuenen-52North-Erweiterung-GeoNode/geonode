@@ -20,7 +20,6 @@
 import os
 import re
 import html
-import json
 import math
 import uuid
 import logging
