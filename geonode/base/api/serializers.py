@@ -136,12 +136,30 @@ class GroupProfileSerializer(BaseDynamicModelSerializer):
     class Meta:
         model = GroupProfile
         name = "group_profile"
+        count_type = "group"
         view_name = "group-profiles-list"
         fields = ("pk", "title", "group", "slug", "logo", "description", "email", "keywords", "access", "categories")
 
     group = DynamicRelationField(GroupSerializer, embed=True, many=False)
     keywords = serializers.SlugRelatedField(many=True, slug_field="slug", read_only=True)
     categories = serializers.SlugRelatedField(many=True, slug_field="slug", queryset=GroupCategory.objects.all())
+
+    def to_representation(self, instance):
+        request = self.context.get("request")
+        filter_options = {}
+        if request.query_params:
+            filter_options = {
+                "type_filter": request.query_params.get("type"),
+                "title_filter": request.query_params.get("title__icontains"),
+            }
+        data = super().to_representation(instance)
+        if not isinstance(data, int):
+            try:
+                count_filter = {self.Meta.count_type: instance.group}
+                data["count"] = get_resources_with_perms(request.user, filter_options).filter(**count_filter).count()
+            except (TypeError, NoReverseMatch) as e:
+                logger.exception(e)
+        return data
 
 
 class SimpleHierarchicalKeywordSerializer(DynamicModelSerializer):
