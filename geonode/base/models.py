@@ -22,6 +22,7 @@ import re
 import html
 import math
 import uuid
+import json
 import logging
 import traceback
 from sequences.models import Sequence
@@ -1475,6 +1476,30 @@ class ResourceBase(PolymorphicModel, PermissionLevelMixin, ItemBase):
                 description = f"{self.title} ({link.name} Format)"
                 links.append((self.title, description, _link_type, link.url))
         return links
+
+    def pycsw_contacts(self):
+        """assemble contacts for pycsw"""
+        site_url = settings.SITEURL.rstrip("/") if settings.SITEURL.startswith("http") else settings.SITEURL
+        contacts = []
+        if self.metadata_author:
+            contacts.append(
+                {
+                    "individualname": self.metadata_author.full_name_or_nick,
+                    "organization": self.metadata_author.organization,
+                    "role": "author",
+                    "url": urljoin(site_url, self.metadata_author.get_absolute_url()),
+                }
+            )
+        if self.poc:
+            contacts.append(
+                {
+                    "individualname": self.poc.full_name_or_nick,
+                    "organization": self.poc.organization,
+                    "role": "pointOfContact",
+                    "url": urljoin(site_url, self.poc.get_absolute_url()),
+                }
+            )
+        return json.dumps(contacts)
 
     @property
     def embed_url(self):

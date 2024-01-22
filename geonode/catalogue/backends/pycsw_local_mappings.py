@@ -37,7 +37,7 @@ MD_CORE_MODEL = {
         "pycsw:CloudCover": "cloudcover",
         "pycsw:Bands": "bands",
         "pycsw:Themes": "themes",
-        "pycsw:Contacts": "contacts",
+        "pycsw:Contacts": "pycsw_contacts",
         "pycsw:Abstract": "raw_abstract",
         "pycsw:Keywords": "keyword_csv",
         "pycsw:KeywordType": "keywordstype",
