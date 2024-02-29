@@ -104,7 +104,6 @@ class StreamToLogger:
 
 
 class SecurityTests(ResourceTestCaseMixin, GeoNodeBaseTestSupport):
-
     """
     Tests for the Geonode security app.
     """
@@ -2480,7 +2479,9 @@ class TestUserHasPerms(GeoNodeBaseTestSupport):
             # setting the view permissions
             url = reverse(_case["url"], kwargs={"pk": _case["resource"].pk})
 
-            _case["resource"].set_permissions({"users": {self.marty.username: ["base.view_resourcebase"]}})
+            _case["resource"].set_permissions(
+                {"users": {self.marty.username: ["base.view_resourcebase", "base.download_resourcebase"]}}
+            )
             # calling the api
             self.client.force_login(self.marty)
             result = self.client.get(url)
