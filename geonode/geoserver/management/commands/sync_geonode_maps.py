@@ -23,17 +23,18 @@ from django.core.management.base import BaseCommand
 
 from geonode.maps.models import Map
 from geonode.base.utils import remove_duplicate_links
-from geonode.geoserver.helpers import (
-    create_gs_thumbnail
-)
+from geonode.geoserver.helpers import create_gs_thumbnail
 
 
-def sync_geonode_maps(ignore_errors,
-                      filter,
-                      username,
-                      removeduplicates,
-                      updatethumbnails):
-    maps = Map.objects.all().order_by('title')
+def sync_geonode_maps(
+    ignore_errors,
+    filter,
+    username,
+    removeduplicates,
+    updatethumbnails,
+    updatebbox,
+):
+    maps = Map.objects.all().order_by("title")
     if filter:
         maps = maps.filter(title__icontains=filter)
     if username:
@@ -52,6 +53,9 @@ def sync_geonode_maps(ignore_errors,
                 # remove duplicates
                 print("Removing duplicate links...")
                 remove_duplicate_links(map)
+            if updatebbox:
+                print("Regenerating BBOX...")
+                map.compute_bbox()
         except (Exception, RuntimeError):
             map_errors.append(map.title)
             exception_type, error, traceback = sys.exc_info()
@@ -60,6 +64,7 @@ def sync_geonode_maps(ignore_errors,
                 pass
             else:
                 import traceback
+
                 traceback.print_exc()
                 print("Stopping process because --ignore-errors was not set and an error was found.")
                 return
@@ -69,56 +74,57 @@ def sync_geonode_maps(ignore_errors,
 
 
 class Command(BaseCommand):
-    help = 'Update the GeoNode maps: permissions, thumbnails'
+    help = "Update the GeoNode maps: permissions, thumbnails"
 
     def add_arguments(self, parser):
         parser.add_argument(
-            '-i',
-            '--ignore-errors',
-            action='store_true',
-            dest='ignore_errors',
+            "-i",
+            "--ignore-errors",
+            action="store_true",
+            dest="ignore_errors",
             default=False,
-            help='Stop after any errors are encountered.'
+            help="Stop after any errors are encountered.",
         )
         parser.add_argument(
-            '-d',
-            '--remove-duplicates',
-            action='store_true',
-            dest='removeduplicates',
+            "-d",
+            "--remove-duplicates",
+            action="store_true",
+            dest="removeduplicates",
             default=False,
-            help='Remove duplicates first.'
+            help="Remove duplicates first.",
         )
         parser.add_argument(
-            '-f',
-            '--filter',
-            dest="filter",
-            default=None,
-            help="Only update data the maps that match the given filter."),
+            "-f", "--filter", dest="filter", default=None, help="Only update data the maps that match the given filter."
+        ),
         parser.add_argument(
-            '-u',
-            '--username',
-            dest="username",
-            default=None,
-            help="Only update data owned by the specified username.")
+            "-u", "--username", dest="username", default=None, help="Only update data owned by the specified username."
+        )
         parser.add_argument(
-            '--updatethumbnails',
-            action='store_true',
+            "--updatethumbnails",
+            action="store_true",
             dest="updatethumbnails",
             default=False,
-            help="Update the map styles and thumbnails.")
+            help="Update the map styles and thumbnails.",
+        )
+        parser.add_argument(
+            "--updatebbox", action="store_true", dest="updatebbox", default=False, help="Update the map BBOX."
+        )
 
     def handle(self, **options):
-        ignore_errors = options.get('ignore_errors')
-        removeduplicates = options.get('removeduplicates')
-        updatethumbnails = options.get('updatethumbnails')
-        filter = options.get('filter')
-        if not options.get('username'):
+        ignore_errors = options.get("ignore_errors")
+        removeduplicates = options.get("removeduplicates")
+        updatethumbnails = options.get("updatethumbnails")
+        updatebbox = options.get("updatebbox")
+        filter = options.get("filter")
+        if not options.get("username"):
             username = None
         else:
-            username = options.get('username')
+            username = options.get("username")
         sync_geonode_maps(
             ignore_errors,
             filter,
             username,
             removeduplicates,
-            updatethumbnails)
+            updatethumbnails,
+            updatebbox,
+        )

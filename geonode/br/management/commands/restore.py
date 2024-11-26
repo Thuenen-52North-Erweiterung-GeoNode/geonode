@@ -59,11 +59,7 @@ class Command(BaseCommand):
         # Named (optional) arguments
         utils.option(parser)
 
-        parser.add_argument(
-            "--geoserver-data-dir",
-            dest="gs_data_dir",
-            default=None,
-            help="Geoserver data directory")
+        parser.add_argument("--geoserver-data-dir", dest="gs_data_dir", default=None, help="Geoserver data directory")
 
         parser.add_argument(
             "-i",
@@ -265,13 +261,16 @@ class Command(BaseCommand):
                 # Write Checks
                 media_root = settings.MEDIA_ROOT
                 media_folder = os.path.join(target_folder, utils.MEDIA_ROOT)
-
+                assets_root = settings.ASSETS_ROOT
+                assets_folder = os.path.join(target_folder, utils.ASSETS_ROOT)
                 try:
                     logger.info("*** Performing some checks...")
                     logger.info(f"[Sanity Check] Full Write Access to restore folder: '{restore_folder}' ...")
                     chmod_tree(restore_folder)
                     logger.info(f"[Sanity Check] Full Write Access to media root: '{media_root}' ...")
                     chmod_tree(media_root)
+                    logger.info(f"[Sanity Check] Full Write Access to assets root: '{assets_root}' ...")
+                    chmod_tree(assets_root)
                 except Exception as e:
                     if notify:
                         restore_notification.apply_async(
@@ -393,15 +392,11 @@ class Command(BaseCommand):
 
                         # Restore Media Root
                         logger.info("*** Restore media root...")
-                        if config.gs_data_dt_filter[0] is None:
-                            shutil.rmtree(media_root, ignore_errors=True)
+                        self.restore_folder(config, media_root, media_folder)
+                        logger.info("*** Restore assets root...")
+                        self.restore_folder(config, assets_root, assets_folder)
 
-                        if not os.path.exists(media_root):
-                            os.makedirs(media_root, exist_ok=True)
-
-                        copy_tree(media_folder, media_root)
-                        chmod_tree(media_root)
-                        logger.info(f"Media files restored into '{media_root}'.")
+                        # TODO improve this part, by saving the original asset_root path in a variable, then replace with the new one
 
                     # store backup info
                     restored_backup = RestoredBackup(
@@ -440,6 +435,17 @@ class Command(BaseCommand):
             finally:
                 logger.info("*** Final filesystem cleanup ...")
                 shutil.rmtree(restore_folder)
+
+    def restore_folder(self, config, root, folder):
+        if config.gs_data_dt_filter[0] is None:
+            shutil.rmtree(root, ignore_errors=True)
+
+        if not os.path.exists(root):
+            os.makedirs(root, exist_ok=True)
+
+        copy_tree(folder, root)
+        chmod_tree(root)
+        logger.info(f"Files restored into '{root}'.")
 
     def validate_backup_file_options(self, **options) -> None:
         """
