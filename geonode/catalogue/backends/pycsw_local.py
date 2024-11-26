@@ -52,20 +52,21 @@ CONFIGURATION = {
         "pretty_print": "true",
         "domainquerytype": "range",
         "domaincounts": "true",
-        "profiles": "apiso,ebrim",
     },
+    "profiles": {"apiso", "ebrim"},
     "repository": {
         "source": "geonode.catalogue.backends.pycsw_plugin.GeoNodeRepository",
         "filter": "uuid IS NOT NULL",
         "mappings": os.path.join(os.path.dirname(__file__), "pycsw_local_mappings.py"),
     },
+    "logging": {"level": "ERROR"},
 }
 
 
 class CatalogueBackend(GenericCatalogueBackend):
     def __init__(self, *args, **kwargs):
         GenericCatalogueBackend.__init__(CatalogueBackend, self, *args, **kwargs)
-        self.catalogue.formats = ["Atom", "DataCite", "DIF", "Dublin Core", "ebRIM", "FGDC", "ISO"]
+        self.catalogue.formats = ["Atom", "DIF", "Dublin Core", "ebRIM", "FGDC", "ISO"]
         self.catalogue.local = True
 
     def remove_record(self, uuid):
