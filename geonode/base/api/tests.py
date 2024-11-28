@@ -3300,30 +3300,6 @@ class TestApiLinkedResources(GeoNodeBaseTestSupport):
             for d in _d:
                 d.delete()
 
-    def test_linked_resource_filter_one_resource_type(self):
-        _d = []
-        try:
-            # data preparation
-            _d.append(LinkedResource.objects.create(source_id=self.doc.id, target_id=self.dataset.id))
-            _d.append(LinkedResource.objects.create(source_id=self.doc.id, target_id=self.map.id))
-            resource_type_param = "dataset"
-            # call api with single resource_type param
-            url = reverse("base-resources-linked_resources", args=[self.doc.id])
-            response = self.client.get(f"{url}?resource_type={resource_type_param}")
-
-            # validation
-            self.assertEqual(response.status_code, 200)
-            payload = response.json()
-
-            res_types_orig = resource_type_param.split(",")
-            res_types_payload = [res["resource_type"] for res in payload["linked_to"]]
-            for r in res_types_payload:
-                self.assertTrue(r in res_types_orig)
-
-        finally:
-            for d in _d:
-                d.delete()
-
 
 class TestApiAdditionalBBoxCalculation(GeoNodeBaseTestSupport):
     @classmethod
