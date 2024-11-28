@@ -37,3 +37,17 @@ ROLE_VALUES = (
     ("owner", _("party that owns the resource")),
     ("principalInvestigator", _("key party responsible for gathering information and conducting research")),
 )
+
+GMD_ROLE_LABEL_MAPPING = {
+    "Owner": "owner",
+    "Point of Contact": "pointOfContact",
+    "Metadata Author": "author",
+    "Processor": "processor",
+    "Publisher": "publisher",
+    "Custodian": "custodian",
+    "Distributor": "distributor",
+    "Resource User": "user",
+    "Resource Provider": "resourceProvider",
+    "Originator": "originator",
+    "Principal Investigator": "principalInvestigator",
+}

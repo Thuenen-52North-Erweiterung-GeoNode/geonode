@@ -22,6 +22,7 @@ import re
 import html
 import math
 import uuid
+import json
 import logging
 import traceback
 from typing import List, Optional, Union, Tuple
@@ -82,7 +83,7 @@ from geonode.security.permissions import VIEW_PERMISSIONS, OWNER_PERMISSIONS
 
 from geonode.notifications_helper import send_notification, get_notification_recipients
 from geonode.people import Roles
-from geonode.people.enumerations import ROLE_VALUES
+from geonode.people.enumerations import ROLE_VALUES, GMD_ROLE_LABEL_MAPPING
 
 from urllib.parse import urlsplit, urljoin
 from geonode.storage.manager import storage_manager
@@ -1454,6 +1455,25 @@ class ResourceBase(PolymorphicModel, PermissionLevelMixin, ItemBase):
                 description = f"{self.title} ({link.name} Format)"
                 links.append((self.title, description, _link_type, link.url))
         return links
+
+    def pycsw_contacts(self):
+        """assemble contacts for pycsw"""
+        site_url = settings.SITEURL.rstrip("/") if settings.SITEURL.startswith("http") else settings.SITEURL
+        contact_roles = self.get_defined_multivalue_contact_roles()
+        if self.owner:
+            contact_roles["Owner"] = [self.owner]
+        contacts = []
+        for cont_lbl, cont_vals in contact_roles.items():
+            for cont in cont_vals:
+                contacts.append(
+                    {
+                        "individualname": cont.full_name_or_nick,
+                        "organization": cont.organization,
+                        "role": GMD_ROLE_LABEL_MAPPING[cont_lbl],
+                        "url": urljoin(site_url, cont.get_absolute_url()),
+                    }
+                )
+        return json.dumps(contacts)
 
     @property
     def embed_url(self):
